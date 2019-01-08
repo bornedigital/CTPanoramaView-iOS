@@ -65,6 +65,31 @@ import ImageIO
         }
     }
     
+    @objc public func updateImage(with image: UIImage) {
+        // self.image = image
+        
+        // Update if geometryNode exists
+        if let geometryNode = self.geometryNode {
+            let material = createMaterial(for: image)
+            let sphere = self.createSphere(for: material)
+            
+            // Animate
+            let sphereNode = SCNNode()
+            sphereNode.geometry = sphere
+            sphereNode.geometry!.firstMaterial!.transparency = 1.0
+            scene.rootNode.addChildNode(sphereNode)
+            
+//            SCNTransaction.animationDuration = 1.0
+//            sphereNode.opacity = 1.0
+//            geometryNode.opacity = 0.0
+            
+            //                UIView.animate(withDuration: 0.5) {
+            //                    geometryNode.geometry = sphere
+            //                }
+            // resetCameraAngles()
+        }
+    }
+    
     // MARK: Private properties
     
     private let radius: CGFloat = 10
@@ -166,19 +191,10 @@ import ImageIO
         guard let image = image else {return}
         
         geometryNode?.removeFromParentNode()
-        
-        let material = SCNMaterial()
-        material.diffuse.contents = image
-        material.diffuse.mipFilter = .nearest
-        material.diffuse.magnificationFilter = .nearest
-        material.diffuse.contentsTransform = SCNMatrix4MakeScale(-1, 1, 1)
-        material.diffuse.wrapS = .repeat
-        material.cullMode = .front
+        let material = createMaterial(for: image)
         
         if panoramaType == .spherical {
-            let sphere = SCNSphere(radius: radius)
-            sphere.segmentCount = 300
-            sphere.firstMaterial = material
+            let sphere = self.createSphere(for: material)
             
             let sphereNode = SCNNode()
             sphereNode.geometry = sphere
@@ -194,6 +210,24 @@ import ImageIO
             geometryNode = tubeNode
         }
         scene.rootNode.addChildNode(geometryNode!)
+    }
+    
+    private func createMaterial(for image: UIImage) -> SCNMaterial {
+        let material = SCNMaterial()
+        material.diffuse.contents = image
+        material.diffuse.mipFilter = .nearest
+        material.diffuse.magnificationFilter = .nearest
+        material.diffuse.contentsTransform = SCNMatrix4MakeScale(-1, 1, 1)
+        material.diffuse.wrapS = .repeat
+        material.cullMode = .front
+        return material
+    }
+    
+    private func createSphere(for material: SCNMaterial) -> SCNSphere {
+        let sphere = SCNSphere(radius: radius)
+        sphere.segmentCount = 300
+        sphere.firstMaterial = material
+        return sphere
     }
     
     private func replace(overlayView: UIView?, with newOverlayView: UIView?) {
